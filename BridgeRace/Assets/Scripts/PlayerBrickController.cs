@@ -19,6 +19,15 @@ public class PlayerBrickController : MonoBehaviour
 
     private Vector3 bridgePos;
 
+    public Color selectedColor;
+
+    private BrickGenerator brickGenerator;
+
+    private void Start()
+    {
+        brickGenerator = FindObjectOfType<BrickGenerator>();
+    }
+
     void FixedUpdate()
     {
         CheckBridge();
@@ -31,7 +40,7 @@ public class PlayerBrickController : MonoBehaviour
         {
             Debug.DrawRay(brickPlacer.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
 
-            if (hit.collider.tag == "Bridge")
+            if (hit.collider.CompareTag("Bridge"))
             {
                 if (bricks > 0)
                 {
@@ -59,11 +68,15 @@ public class PlayerBrickController : MonoBehaviour
 
         Vector3 brickPlacement = new Vector3(bridgePos.x, bridgePos.y + (brickCount * 0.30f), bridgePos.z + (brickCount * 0.65f));
 
-        Instantiate(placedBrick, brickPlacement, placedBrick.transform.rotation);
+        Transform brick = Instantiate(placedBrick, brickPlacement, placedBrick.transform.rotation);
+
+        brick.GetComponent<Renderer>().material.SetColor("_Color", selectedColor);
 
         hit.collider.GetComponent<WayKeeper>().bricksPlaced += 1;
 
         RemoveDummyBrick();
+
+        brickGenerator.GenerateRemovedBrick();
     }
 
     private void BlockFallOff()
@@ -88,9 +101,11 @@ public class PlayerBrickController : MonoBehaviour
     public void UpdatePlayerBricks()
     {
         Vector3 brickPosition = new Vector3(brickArea.position.x, brickArea.position.y + (bricks * 0.1f), brickArea.position.z);
-        Instantiate(dummyBrick, brickPosition, dummyBrick.transform.rotation, brickArea);
+        Transform brick = Instantiate(dummyBrick, brickPosition, dummyBrick.transform.rotation, brickArea);
+        brick.GetComponent<Renderer>().material.SetColor("_Color", selectedColor);
         bricks++;
     }
+
     private void Update()
     {
         brickArea.transform.rotation = Quaternion.Euler(0.0f, 0.0f, gameObject.transform.rotation.z * -1.0f);
