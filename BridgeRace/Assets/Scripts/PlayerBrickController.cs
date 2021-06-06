@@ -20,6 +20,7 @@ public class PlayerBrickController : MonoBehaviour
     private Vector3 bridgePos;
 
     public Color selectedColor;
+    public string selectedColorName;
 
     private BrickGenerator brickGenerator;
 
@@ -39,6 +40,15 @@ public class PlayerBrickController : MonoBehaviour
         if (Physics.Raycast(brickPlacer.position, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
         {
             Debug.DrawRay(brickPlacer.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.yellow);
+
+            if (hit.collider.GetComponent<PlacedBrick>() != null && hit.collider.GetComponent<PlacedBrick>().colorName != selectedColorName && bricks <= 0)
+            {
+                DontStepToOtherColorBrick();
+            }
+            else if (hit.collider.GetComponent<PlacedBrick>() != null && hit.collider.GetComponent<PlacedBrick>().colorName != selectedColorName && bricks > 0)
+            {
+                ReplaceOtherColorBrick(hit);
+            }
 
             if (hit.collider.CompareTag("Bridge"))
             {
@@ -71,6 +81,7 @@ public class PlayerBrickController : MonoBehaviour
         Transform brick = Instantiate(placedBrick, brickPlacement, placedBrick.transform.rotation);
 
         brick.GetComponent<Renderer>().material.SetColor("_Color", selectedColor);
+        brick.GetComponent<PlacedBrick>().colorName = selectedColorName;
 
         hit.collider.GetComponent<WayKeeper>().bricksPlaced += 1;
 
@@ -104,6 +115,27 @@ public class PlayerBrickController : MonoBehaviour
         Transform brick = Instantiate(dummyBrick, brickPosition, dummyBrick.transform.rotation, brickArea);
         brick.GetComponent<Renderer>().material.SetColor("_Color", selectedColor);
         bricks++;
+    }
+
+    private void DontStepToOtherColorBrick()
+    {
+        transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 0.5f);
+    }
+
+    private void ReplaceOtherColorBrick(RaycastHit hit)
+    {
+        Vector3 newBrickposition = hit.transform.position;
+
+        Destroy(hit.collider.gameObject);
+
+        Transform newBrick = Instantiate(placedBrick, newBrickposition, placedBrick.transform.rotation);
+
+        newBrick.GetComponent<Renderer>().material.SetColor("_Color", selectedColor);
+        newBrick.GetComponent<PlacedBrick>().colorName = selectedColorName;
+
+        RemoveDummyBrick();
+
+        brickGenerator.GenerateRemovedBrick();
     }
 
     private void Update()
