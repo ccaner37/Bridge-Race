@@ -4,15 +4,24 @@ using UnityEngine;
 
 public class PlayerCollectController : MonoBehaviour
 {
-    PlayerBrickController brickController;
-    BrickGenerator brickGenerator;
+    private PlayerBrickController brickController;
+    private BrickGenerator brickGenerator;
+    private BotController botController;
 
     public string playerColorName;
+
+    [SerializeField]
+    private bool isBot;
 
     private void Start()
     {
         brickController = GetComponent<PlayerBrickController>();
         brickGenerator = GameObject.FindObjectOfType<BrickGenerator>();
+
+        if (isBot)
+        {
+            botController = gameObject.GetComponent<BotController>();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -24,6 +33,11 @@ public class PlayerCollectController : MonoBehaviour
             brickGenerator.MakeRemoved(brick.brickNumber);
             Destroy(other.gameObject);
             brickController.UpdatePlayerBricks();
+        }
+
+        if (isBot)
+        {
+            botController.CollectBrick();
         }
     }
 }

@@ -8,6 +8,9 @@ public class PlayerBrickController : MonoBehaviour
     private float brickCount;
 
     [SerializeField]
+    private bool isBot;
+
+    [SerializeField]
     private Transform dummyBrick;
     [SerializeField]
     private Transform placedBrick;
@@ -16,6 +19,8 @@ public class PlayerBrickController : MonoBehaviour
     private Transform brickArea;
     [SerializeField]
     private Transform brickPlacer;
+    [SerializeField]
+    private Transform placedBricks;
 
     private Vector3 bridgePos;
 
@@ -23,10 +28,16 @@ public class PlayerBrickController : MonoBehaviour
     public string selectedColorName;
 
     private BrickGenerator brickGenerator;
+    private BotController botController;
 
     private void Start()
     {
         brickGenerator = FindObjectOfType<BrickGenerator>();
+
+        if (isBot)
+        {
+            botController = gameObject.GetComponent<BotController>();
+        }
     }
 
     void FixedUpdate()
@@ -58,6 +69,12 @@ public class PlayerBrickController : MonoBehaviour
                 }
                 else
                 {
+                    if (isBot)
+                    {
+                        botController.PlaceOrCollectBricks();
+                    }
+
+                    brickCount = hit.collider.GetComponent<WayKeeper>().bricksPlaced;
                     BlockFallOff();
                 }
             }
@@ -66,7 +83,7 @@ public class PlayerBrickController : MonoBehaviour
         else
         {
             Debug.DrawRay(brickPlacer.position, transform.TransformDirection(Vector3.down) * 1000, Color.white);
-            Debug.Log("Did not Hit");
+            //Debug.Log("Did not Hit");
         }
     }
 
@@ -78,7 +95,7 @@ public class PlayerBrickController : MonoBehaviour
 
         Vector3 brickPlacement = new Vector3(bridgePos.x, bridgePos.y + (brickCount * 0.30f), bridgePos.z + (brickCount * 0.65f));
 
-        Transform brick = Instantiate(placedBrick, brickPlacement, placedBrick.transform.rotation);
+        Transform brick = Instantiate(placedBrick, brickPlacement, placedBrick.transform.rotation, placedBricks);
 
         brick.GetComponent<Renderer>().material.SetColor("_Color", selectedColor);
         brick.GetComponent<PlacedBrick>().colorName = selectedColorName;
@@ -88,15 +105,20 @@ public class PlayerBrickController : MonoBehaviour
         RemoveDummyBrick();
 
         brickGenerator.GenerateRemovedBrick();
+
+        if (isBot)
+        {
+           // botController.UpdateMesh();
+        }
     }
 
     private void BlockFallOff()
     {
         Vector3 playerPosition = transform.position;
 
-        if (transform.position.z > bridgePos.z + (brickCount * 0.70f))
+        if (transform.position.z > bridgePos.z + (brickCount * 0.50f))
         {
-            playerPosition.z = bridgePos.z + (brickCount * 0.70f);
+            playerPosition.z = bridgePos.z + (brickCount * 0.50f);
         }
 
         transform.position = playerPosition;
